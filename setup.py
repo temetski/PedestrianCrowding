@@ -1,4 +1,6 @@
-from distutils.core import setup, Extension
+#from distutils.core import setup, Extension
+from setuptools import setup
+from setuptools.extension import Extension
 from Cython.Build import cythonize
 import numpy
 extra_compile_args = [
