@@ -4,9 +4,9 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport RAND_MAX
 import random as rnd    
-cimport random
-cdef random.mt19937 gen = random.mt19937(rnd.randint(0, RAND_MAX))
-cdef random.uniform_real_distribution[double] dist = random.uniform_real_distribution[double](0.0,1.0)
+cimport PedestrianCrowding.random
+cdef PedestrianCrowding.random.mt19937 gen = PedestrianCrowding.random.mt19937(rnd.randint(0, RAND_MAX))
+cdef PedestrianCrowding.random.uniform_real_distribution[double] dist = PedestrianCrowding.random.uniform_real_distribution[double](0.0,1.0)
 
 STUFF="HI"
 cdef class Vehicle(object):

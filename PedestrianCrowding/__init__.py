@@ -1,2 +1,2 @@
-from PedestrianCrowding.pytrafficmodel import *
+from pytrafficmodel import *
 from PedestrianCrowding import simulation

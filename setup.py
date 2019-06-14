@@ -43,5 +43,6 @@ setup(
                                                   # additional C++ source files
            language="c++",                        # generate and compile C++ code
            extra_compile_args=extra_compile_args,
-            extra_link_args=extra_link_args
-      )))
+            extra_link_args=extra_link_args), 
+            language_level=3
+      ))
