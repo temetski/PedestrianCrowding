@@ -14,7 +14,7 @@ extra_compile_args = [
     ## Add include directories
     "-I/usr/local/include",
     "-I/usr/include",
-    "-I./source",
+    # "-I./source",
     "-I{0}".format(numpy.get_include()),
 #     "-flto",
     "-D_GLIBCXX_USE_CXX11_ABI=0" # Cython/GCC5 issues
@@ -34,12 +34,12 @@ if system() == "Darwin":
 
 setup(
     name="pytrafficmodel",
-    packages=find_packages(),# + ["source"],
+    packages=find_packages(),
     version='{d.year}.{d.month}.{d.day}'.format(d=datetime.now()), # trust me on this one
     
     ext_modules = cythonize(Extension(
-           "pytrafficmodel",                                # the extension name
-           sources=["source/pytrafficmodel.pyx"], # the Cython source and
+           "PedestrianCrowding.pytrafficmodel",                                # the extension name
+           sources=["PedestrianCrowding/pytrafficmodel.pyx"], # the Cython source and
                                                   # additional C++ source files
            language="c++",                        # generate and compile C++ code
            extra_compile_args=extra_compile_args,
