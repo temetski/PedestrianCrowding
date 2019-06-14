@@ -266,9 +266,9 @@ cdef class Road:
         self.vehicle_array = [veh for i, veh in enumerate(
             self.vehicle_array) if i not in reached_end]
 
-    cdef spawn_pedestrian(self):
+    cdef spawn_pedestrian(self, int period=1):
         cdef int i
-        for i in range(len(self.pedestrian[self.num_lanes-1])):
+        for i in range(0, len(self.pedestrian[self.num_lanes-1]), period):
             self.pedestrian[self.num_lanes-1][i] += (self.pedestrian[self.num_lanes-1][i] == 0)*(self.road[self.num_lanes-1,i] == 0) * (dist(gen) < self.alpha)*1
 
 
