@@ -1,1 +1,8 @@
 *.mp4
+*.cpp
+*.egg-info
+*.so
+*.o
+*.egg
+*.csv
+*.ipynb_checkpoints
