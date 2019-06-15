@@ -275,10 +275,16 @@ cdef class Road:
     cdef float frac_bus_converter(self):
         return self.num_lanes*self.frac_bus
 
-    cpdef float throughput(self):
+    cpdef np.float64_t throughput(self):
         return 1.*sum([i.vel for i in self.vehicle_array])/self.roadlength/self.num_lanes
 
-    cpdef float get_density(self):
+    cpdef np.ndarray[np.float64_t, ndim=1] throughput_per_lane(self):
+        cdef np.ndarray[np.float64_t, ndim=1] lane = np.empty(self.num_lanes, dtype=np.float64)
+        for i in range(self.num_lanes):
+            lane[i] = 1.*sum([j.vel for j in self.vehicle_array if j.lane==i])/self.roadlength
+        return lane
+
+    cpdef np.float64_t get_density(self):
         cdef int count = 0
         cdef int i,j
         for i in range(len(self.road)):
