@@ -269,7 +269,11 @@ cdef class Road:
     cdef spawn_pedestrian(self, int period=1):
         cdef int i
         for i in range(0, len(self.pedestrian[self.num_lanes-1]), period):
-            self.pedestrian[self.num_lanes-1][i] += (self.pedestrian[self.num_lanes-1][i] == 0)*(self.road[self.num_lanes-1,i] == 0) * (dist(gen) < self.alpha)*1
+            if self.pedestrian[self.num_lanes-1][i] == 0:
+                self.pedestrian[self.num_lanes-1][i] += (self.road[self.num_lanes-1,i] == 0) * (dist(gen) < self.alpha)*1
+            else:
+                # increment waiting time
+                self.pedestrian[self.num_lanes-1][i] += 1
 
 
     cdef float frac_bus_converter(self):
