@@ -26,15 +26,15 @@ def simulate(density, frac_bus, trial, alpha):
             throughputs_lane[t-trans_time] = road.throughput_per_lane()
             waiting_times += road.waiting_times
     res = {"throughput": np.mean(throughputs),
-            "throughput_lanes": np.mean(throughputs_lane, axis=0),
+            "throughput_lanes": np.mean(throughputs_lane, axis=0).tolist(),
             "frac_bus": frac_bus,
             "density": road.get_density(),
             "trial": trial,
             "alpha": alpha, 
             "p_slow": p_slow,
-            "mean_waiting_time": np.mean(waiting_times),
-            "median_waiting_time": np.median(waiting_times),
-            "quartile1_waiting_time": np.percentile(waiting_times, 25),
-            "quartile3_waiting_time": np.percentile(waiting_times, 75)}    
+            "mean_waiting_time": np.mean(waiting_times) if waiting_times else 0,
+            "median_waiting_time": np.median(waiting_times) if waiting_times else 0,
+            "quartile1_waiting_time": np.percentile(waiting_times, 25) if waiting_times else 0,
+            "quartile3_waiting_time": np.percentile(waiting_times, 75) if waiting_times else 0}    
     return res
 
