@@ -133,6 +133,7 @@ cdef class Bus(Vehicle):
 
     cpdef load(self):
         if self.pedestrian[self.lane, self.pos] != 0:
+            self.Road.waiting_times.append(self.pedestrian[self.lane, self.pos])
             self.pedestrian[self.lane, self.pos] = 0
             self.vel = 0
 
@@ -144,6 +145,7 @@ cdef class Road:
         bint periodic
         np.int_t[:,:] road
         np.int_t[:,:] pedestrian
+        list waiting_times
         list vehicle_array
 
     def __cinit__(self, int roadlength, int num_lanes, int vmax, float alpha, 
@@ -157,6 +159,7 @@ cdef class Road:
         self.alpha = alpha
         self.periodic = periodic
         self.p_slow = p_slow
+        self.waiting_times = []
         if frac_bus <= 1./num_lanes:
             self.frac_bus = frac_bus
         else:

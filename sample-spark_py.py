@@ -25,12 +25,12 @@ To run on a standalone cluster:
 '''
 
 ## TODO: set these values as function arguments (model parameters)
-num_lanes = 1
+num_lanes = 2
 
 densities = np.arange(0.2, 1, 0.2)
-bus_fractions = np.linspace(0, 1/num_lanes, 2)
-trials = range(2)
-alphas = np.geomspace(1e-4, 1, 2)
+bus_fractions = np.linspace(0, 1/num_lanes, 11)
+trials = range(50)
+alphas = np.geomspace(1e-4, 1, 29)
 
 
 def operation(params):
