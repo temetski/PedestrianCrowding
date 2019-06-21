@@ -198,6 +198,7 @@ cdef class Road:
         cdef list reached_end = []
         cdef int i
         cdef Vehicle vehicle
+        self.waiting_times = []
         lcs = np.zeros_like(self.vehicle_array)
         for i, vehicle in enumerate(self.vehicle_array):
             vehicle.accelerate()
