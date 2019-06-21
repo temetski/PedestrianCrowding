@@ -140,7 +140,7 @@ cdef class Bus(Vehicle):
 
 cdef class Road:
     cdef public:
-        int roadlength, num_lanes, vmax
+        int roadlength, num_lanes, vmax, station_period
         float alpha, frac_bus, density, p_slow
         bint periodic
         np.int_t[:,:] road
@@ -148,8 +148,9 @@ cdef class Road:
         list waiting_times
         list vehicle_array
 
+
     def __cinit__(self, int roadlength, int num_lanes, int vmax, float alpha, 
-                    float frac_bus, bint periodic, float density, float p_slow):
+                    float frac_bus, bint periodic, float density, float p_slow, int station_period=1):
         self.roadlength = roadlength
         self.vehicle_array = []
         self.road = np.zeros((num_lanes, roadlength), dtype=np.int)
@@ -160,6 +161,7 @@ cdef class Road:
         self.periodic = periodic
         self.p_slow = p_slow
         self.waiting_times = []
+        self.station_period = station_period
         if frac_bus <= 1./num_lanes:
             self.frac_bus = frac_bus
         else:
@@ -193,7 +195,7 @@ cdef class Road:
         if not self.periodic:
             self.populate()
         if self.frac_bus>0:
-            self.spawn_pedestrian()
+            self.spawn_pedestrian(self.station_period)
         np.random.shuffle(self.vehicle_array)
         cdef list reached_end = []
         cdef int i
