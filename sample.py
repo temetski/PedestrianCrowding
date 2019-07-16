@@ -1,5 +1,6 @@
 import numpy as np
-from pytrafficmodel import Road
+from PedestrianCrowding import Road
+from PedestrianCrowding.simulation import simulate
 from multiprocessing import Pool, Manager
 import itertools
 import csv
@@ -7,39 +8,21 @@ import csv
 sim_time = 3000
 trans_time = 1000
 num_lanes = 1
-
-def simulate(density, frac_bus, trial, alpha):
-    roadlength = 500
-    vmax = 5
-    alpha = alpha
-    frac_bus = frac_bus
-    density = density
-    p_slow = 0
-    periodic = True
-    throughputs = []
-    road = Road(roadlength, num_lanes, vmax, alpha, 
-                        frac_bus, periodic, density, p_slow)
-    for t in range(sim_time+trans_time):
-        road.timestep_parallel()
-        if t >= trans_time:
-            throughputs.append(road.throughput())
-    res = {"throughput": np.mean(throughputs),
-            "frac_bus": frac_bus,
-            "density": road.get_density(),
-            "trial": trial,
-            "alpha": alpha, 
-            "p_slow": 0}    
-    return res
+roadlength = 500
+p_slow = 0.1
+v_max = 5
 
 densities = np.arange(0.02, 1, 0.02)
 bus_fractions = np.linspace(0, 1/num_lanes, 11)
 trials = range(50)
-# alphas = np.geomspace(1e-4, 1, 49)
-alphas = np.geomspace(1e-4, 1, 29)
+alphas = np.geomspace(1e-4, 1, 49)
 
 def g(tup):
-    return simulate(*tup)
+    return simulate(*tup, num_lanes=num_lanes, 
+                    sim_time=sim_time, trans_time=trans_time, v_max=v_max, p_slow=p_slow)
 p = Pool()
+
+
 
 
 with open('dataset.csv', 'w') as f:

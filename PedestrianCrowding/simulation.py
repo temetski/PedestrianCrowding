@@ -6,18 +6,15 @@ sim_time = 3000
 trans_time = 1000
 
 
-def simulate(density, frac_bus, trial, alpha, station_period=1, num_lanes=2, sim_time=3000, trans_time=1000):
-    roadlength = 500
-    vmax = 5
-    alpha = alpha
-    frac_bus = frac_bus
-    density = density
-    p_slow = 0.1
+def simulate(density, frac_bus, trial, alpha, 
+             station_period=1, num_lanes=2, sim_time=3000, 
+             trans_time=1000, roadlength=500, v_max=5, p_slow=0.2):
+    print("Param settings: roadlen: %s \t vmax: %s \t pslow: %s \t num_lanes: %s"%(roadlength, v_max, p_slow, num_lanes))
     periodic = True
     throughputs = []
     throughputs_lane = np.zeros((sim_time, num_lanes))
     waiting_times = []
-    road = Road(roadlength, num_lanes, vmax, alpha, 
+    road = Road(roadlength, num_lanes, v_max, alpha, 
                         frac_bus, periodic, density, p_slow, station_period)
     for t in range(sim_time+trans_time):
         road.timestep_parallel()
