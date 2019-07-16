@@ -13,3 +13,5 @@ dist/
 *.pyxbld
 *.pdf
 *.ipynb
+*.crc
+part-*
