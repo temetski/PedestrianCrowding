@@ -4,9 +4,9 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport RAND_MAX
 import random as rnd    
-cimport PedestrianCrowding.random
-cdef PedestrianCrowding.random.mt19937 gen = PedestrianCrowding.random.mt19937(rnd.randint(0, RAND_MAX))
-cdef PedestrianCrowding.random.uniform_real_distribution[double] dist = PedestrianCrowding.random.uniform_real_distribution[double](0.0,1.0)
+# cimport PedestrianCrowding.random
+# cdef PedestrianCrowding.random.mt19937 gen = PedestrianCrowding.random.mt19937(rnd.randint(0, RAND_MAX))
+# cdef PedestrianCrowding.random.uniform_real_distribution[double] dist = PedestrianCrowding.random.uniform_real_distribution[double](0.0,1.0)
 
 STUFF="HI"
 cdef class Vehicle(object):
@@ -39,7 +39,7 @@ cdef class Vehicle(object):
         self.vel = min(self.vel, self.headway(self.lane))
 
     cdef random_slow(self):
-        self.rng = dist(gen)
+        self.rng = np.random.random()
         if (self.rng < self.p_slow):
             self.vel = max(self.vel-1, 0)
 
@@ -207,7 +207,7 @@ cdef class Road:
             if type(vehicle) == Bus:
                 vehicle.load()
 
-            if dist(gen) < vehicle.p_lambda:
+            if np.random.random() < vehicle.p_lambda:
                 lcs[i] = vehicle.lanechange()*1
                 
         for i, vehicle in enumerate(self.vehicle_array):
@@ -240,7 +240,7 @@ cdef class Road:
                 vehicle.load()
 
             lc = False
-            if dist(gen) < vehicle.p_lambda:
+            if np.random.random() < vehicle.p_lambda:
                 lc = vehicle.lanechange()
                 
             vehicle.decelerate()
@@ -257,7 +257,7 @@ cdef class Road:
     def populate(self):
         for i, lane in enumerate(self.road):
             if lane[0] == 0:  # First cell empty
-                if (dist(gen) < self.frac_bus_converter()) and (i == (self.num_lanes-1)):
+                if (np.random.random() < self.frac_bus_converter()) and (i == (self.num_lanes-1)):
                     vehicle = Bus(Road=self, pos=0, lane=i, vel=self.vmax,
                                   p_slow=self.p_slow, p_lambda=0)
                 else:
@@ -276,7 +276,7 @@ cdef class Road:
         cdef int i
         for i in range(0, len(self.pedestrian[self.num_lanes-1]), period):
             if self.pedestrian[self.num_lanes-1][i] == 0:
-                self.pedestrian[self.num_lanes-1][i] += (self.road[self.num_lanes-1,i] == 0) * (dist(gen) < self.alpha)*1
+                self.pedestrian[self.num_lanes-1][i] += (self.road[self.num_lanes-1,i] == 0) * (np.random.random() < self.alpha)*1
             else:
                 # increment waiting time
                 self.pedestrian[self.num_lanes-1][i] += 1
