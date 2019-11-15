@@ -2,5 +2,5 @@ Install
 =======
 
 ```
-python setup.py install
+python setup.py develop
 ```
