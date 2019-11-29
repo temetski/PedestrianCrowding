@@ -2,6 +2,7 @@ import numpy as np
 from PedestrianCrowding import Road
 from PedestrianCrowding.simulation import simulate
 from multiprocessing import Pool, Manager
+import json
 import itertools
 import csv
 
@@ -15,23 +16,40 @@ v_max = 5
 densities = np.arange(0.02, 1, 0.02)
 # bus_fractions = np.linspace(0, 1/num_lanes, 5)
 bus_fractions = np.arange(0, 0.101, 0.01)
-trials = range(50)
-alpha_max = 0.1
-station_periods = (roadlength*(0.5)**np.arange(1, np.log2(roadlength))).astype(int)
-alphas = station_periods/roadlength*(2*alpha_max)
-print(station_periods)
+bus_fractions = [0.03, 0.25, 0.5, 0.75, 1]
+trials = range(100)
+alpha_max = 0.5
+station_periods = 2**np.arange(0, 9)
+PHI = 0.0512
+alphas = station_periods/roadlength*(alpha_max)/0.0512
+
 
 def g(tup):
-    return simulate(*tup, station_period=tup[-1]*roadlength/(2*alpha_max), num_lanes=num_lanes, 
+    period = tup[-1]*roadlength/(alpha_max)*PHI
+    return simulate(*tup, station_period=period, num_lanes=num_lanes,
                     sim_time=sim_time, trans_time=trans_time, roadlength=roadlength, v_max=v_max, p_slow=p_slow)
+
+
 p = Pool()
 
 
-with open('periodic_stations_maxalpha_%s_bf.csv'%alpha_max, 'w') as f:
-    writer = csv.writer(f)
+with open('periodic_stations_maxalpha_%s_busfractions.csv' % alpha_max, 'w') as datafile:
+    writer = csv.writer(datafile)
     lines = 0
+    paramsfile = open(
+        'periodic_stations_maxalpha_%s_busfractions.json' % alpha_max, 'a')
     for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, alphas)):
         if lines == 0:
             writer.writerow(result.keys())
             lines += 1
         writer.writerow(result.values())
+
+        params_dict = {'density': result['density'],
+                       'alpha': result['alpha'],
+                       'frac_bus': result['frac_bus'],
+                       'station_period': result['station_period'],
+                       'trial': result['trial'],
+                       }
+        paramsfile.write(json.dumps(params_dict))
+        paramsfile.write('\n')
+    paramsfile.close()
