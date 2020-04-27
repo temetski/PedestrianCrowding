@@ -9,6 +9,7 @@ import random as rnd
 # cdef PedestrianCrowding.random.uniform_real_distribution[double] dist = PedestrianCrowding.random.uniform_real_distribution[double](0.0,1.0)
 
 STUFF="HI"
+cdef int max_decel = 2
 cdef class Vehicle(object):
     cdef readonly:
         int pos,lane, prev_lane, marker, vel, vmax
@@ -16,6 +17,7 @@ cdef class Vehicle(object):
     
     cdef public:
         np.int_t[:, :] road
+        int prev_vel
     
     cdef float rng
     cdef Road Road
@@ -33,6 +35,7 @@ cdef class Vehicle(object):
         self.Road = Road
 
     cdef accelerate(self):
+        self.prev_vel = self.vel
         self.vel = min(self.vel+1, self.vmax)
 
     cdef decelerate(self):
@@ -116,7 +119,19 @@ cdef class Bus(Vehicle):
         self.pedestrian = Road.pedestrian
 
     cpdef decelerate(self):
-        self.vel = min([self.vel, self.headway(self.lane), self.passenger_headway()])
+        hw_pass = self.passenger_headway()
+        hw = self.headway(self.lane)
+
+        # skip when too fast
+        if (2*self.prev_vel-3*max_decel)>hw_pass:# and (self.prev_vel-max_decel)>(max_decel):
+            self.vel = min([self.vel, hw])
+        else:
+            # anticipate the stop
+            if (self.prev_vel+max_decel)>=hw_pass>=max_decel:
+                self.vel = min([self.vel, hw, max(self.prev_vel-max_decel, max_decel)]) 
+            else:
+                self.vel = min([self.vel, hw, hw_pass])
+        # print(self.prev_vel, self.vel, hw, hw_pass, c)
 
     cdef int passenger_headway(self):
         cdef int _pos, headwaycount
@@ -124,7 +139,7 @@ cdef class Bus(Vehicle):
         _pos = self.pos+1
         if self.Road.periodic:
             _pos %= self.Road.roadlength
-        while (self.pedestrian[self.lane, _pos]==0) and (headwaycount<self.vmax):
+        while (self.pedestrian[self.lane, _pos]==0) and (headwaycount<(self.vmax*2)):
             _pos += 1
             if self.Road.periodic:
                 _pos %= self.Road.roadlength
@@ -216,6 +231,7 @@ cdef class Road:
 
             if not lcs[i]:
                 vehicle.random_slow()
+
         for i, vehicle in enumerate(self.vehicle_array):
 
             vehicle.movement()
