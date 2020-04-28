@@ -25,11 +25,36 @@ p = Pool()
 
 
 
-with open('dataset.csv', 'w') as f:
+# with open('dataset.csv', 'w') as f:
+#     writer = csv.writer(f)
+#     lines = 0
+#     for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, alphas)):
+#         if lines == 0:
+#             writer.writerow(result.keys())
+#             lines += 1
+#         writer.writerow(result.values())
+        
+with open('../data/dataset_safe_decel.csv', 'w') as f:
     writer = csv.writer(f)
     lines = 0
-    for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, alphas)):
+    ## crossover data
+    densities = np.arange(0.2, 0.81, 0.1)
+    alphas = np.geomspace(1e-4, 1, 49)
+    for result in p.imap_unordered(g, itertools.product(densities, [1], trials, alphas)):
         if lines == 0:
             writer.writerow(result.keys())
             lines += 1
+        writer.writerow(result.values())
+        
+    ## FD data
+    densities = np.arange(0.02, 1, 0.02)
+    bus_fractions = [0,0.2,0.5]
+    for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, [1e-3])):
+        writer.writerow(result.values())
+        
+    ## bus fraction crossover data
+    densities = np.arange(0.02, 0.6, 0.02)
+    bus_fractions = [0.1,0.4,0.7]
+    alphas = np.geomspace(1e-4, 1, 49)
+    for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, alphas)):
         writer.writerow(result.values())
