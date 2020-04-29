@@ -27,12 +27,16 @@ To run on a standalone cluster:
 ## TODO: set these values as function arguments (model parameters)
 num_lanes = 2
 
-densities = np.arange(0.2, 1, 0.2)
+densities = np.arange(0.02, 1, 0.02)
 bus_fractions = np.linspace(0, 1/num_lanes, 11)
 trials = range(50)
 alphas = np.geomspace(1e-4, 1, 29)
 
-
+densities = np.arange(0.2, 1, 0.2)
+bus_fractions = [0.5]
+trials = range(1)
+# alphas = np.geomspace(1e-4, 1, 1)
+alphas = [1]
 def operation(params):
 	# Output of the mapped function should ideally be a tuple
 	# (creates a CSV) or a string from pickling the object.
@@ -44,7 +48,12 @@ def operation(params):
 	return output
 
 if __name__ == "__main__":
+	import os
+	import shutil
+	outfilename = "output.txt"
+	if os.path.exists(outfilename):
+		shutil.rmtree(outfilename)
 	param_set = product(densities, bus_fractions, trials, alphas)
-	with SparkContext(appName="MeasuringGraphs") as sc:
+	with SparkContext(appName="TestDamian") as sc:
 		output = sc.parallelize(param_set).map(lambda x: operation(x))
 		output.saveAsTextFile("output.txt")

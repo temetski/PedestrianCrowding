@@ -34,7 +34,7 @@ p = Pool()
 #             lines += 1
 #         writer.writerow(result.values())
         
-with open('../data/dataset_safe_decel.csv', 'w') as f:
+with open('dataset_safe_decel.csv', 'w') as f:
     writer = csv.writer(f)
     lines = 0
     ## crossover data

@@ -310,6 +310,15 @@ cdef class Road:
             lane[i] = 1.*sum([j.vel for j in self.vehicle_array if j.lane==i])/self.roadlength
         return lane
 
+    # cpdef np.ndarray[np.float64_t, ndim=1] throughput_per_lane(self):
+    #     cdef np.ndarray[np.float64_t, ndim=1] count = np.empty(self.num_lanes, dtype=np.float64)
+    #     cdef int i,j
+    #     for i in range(len(self.road)):
+    #         for j in range(len(self.road[0])):
+    #             if self.road[i,j] != 0:
+    #                 count[i] += 1
+    #     return count/self.road.size
+
     cpdef np.float64_t get_density(self):
         cdef int count = 0
         cdef int i,j
