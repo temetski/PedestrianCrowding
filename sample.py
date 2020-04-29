@@ -54,7 +54,7 @@ with open('../data/dataset_safe_decel.csv', 'w') as f:
         
     ## bus fraction crossover data
     densities = np.arange(0.02, 0.6, 0.02)
-    bus_fractions = [0.1,0.4,0.7]
+    bus_fractions = [0.1,0.4,0.7,1]
     alphas = np.geomspace(1e-4, 1, 49)
     for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, alphas)):
         writer.writerow(result.values())
