@@ -104,6 +104,8 @@ cdef class Vehicle(object):
 cdef class Bus(Vehicle):
     cdef public:
         np.int_t [:,:] pedestrian
+        int num_passengers
+        int wait_counter
 
     def __cinit__(self, Road Road, int pos, int lane, int vel, float p_slow, float p_lambda, **kwargs):
         self.pos = pos
@@ -117,6 +119,15 @@ cdef class Bus(Vehicle):
         self.road = Road.road
         self.Road = Road
         self.pedestrian = Road.pedestrian
+        self.num_passengers = 0
+        self.wait_counter = Road.bus_wait_time
+
+    cdef accelerate(self):
+        if self.wait_counter==self.Road.bus_wait_time:
+            self.prev_vel = self.vel
+            self.vel = min(self.vel+1, self.vmax)
+        else:
+            self.wait_counter += 1
 
     cpdef decelerate(self):
         hw_pass = self.passenger_headway()
@@ -151,21 +162,24 @@ cdef class Bus(Vehicle):
             self.Road.waiting_times.append(self.pedestrian[self.lane, self.pos])
             self.pedestrian[self.lane, self.pos] = 0
             self.vel = 0
+            self.num_passengers += 1
+            self.wait_counter = 0
 
 
 cdef class Road:
     cdef public:
-        int roadlength, num_lanes, vmax, station_period
+        int roadlength, num_lanes, vmax, station_period, max_passengers, bus_wait_time
         float alpha, frac_bus, density, p_slow
         bint periodic
-        np.int_t[:,:] road
+        np.int_t[:,:] road, road_id_map
         np.int_t[:,:] pedestrian
         list waiting_times
         list vehicle_array
 
 
     def __cinit__(self, int roadlength, int num_lanes, int vmax, float alpha, 
-                    float frac_bus, bint periodic, float density, float p_slow, int station_period=1):
+                    float frac_bus, bint periodic, float density, float p_slow,
+                    int station_period=1, int max_passengers=2147483647, int bus_wait_time=0):
         self.roadlength = roadlength
         self.vehicle_array = []
         self.road = np.zeros((num_lanes, roadlength), dtype=np.int)
@@ -177,6 +191,8 @@ cdef class Road:
         self.p_slow = p_slow
         self.waiting_times = []
         self.station_period = station_period
+        self.max_passengers = max_passengers
+        self.bus_wait_time = bus_wait_time
         if frac_bus <= 1./num_lanes:
             self.frac_bus = frac_bus
         else:
@@ -220,7 +236,8 @@ cdef class Road:
         for i, vehicle in enumerate(self.vehicle_array):
             vehicle.accelerate()
             if type(vehicle) == Bus:
-                vehicle.load()
+                if vehicle.num_passengers<self.max_passengers:
+                    vehicle.load()
 
             if np.random.random() < vehicle.p_lambda:
                 lcs[i] = vehicle.lanechange()*1
@@ -328,3 +345,11 @@ cdef class Road:
                     count += 1
         return count/self.road.size
 
+    cpdef int get_num_full_buses(self):
+        cdef Vehicle veh
+        cdef int count = 0
+        for veh in self.vehicle_array:
+            if type(veh) == Bus:
+                if veh.num_passengers == self.max_passengers:
+                    count += 1
+        return count
