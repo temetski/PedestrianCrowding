@@ -17,7 +17,7 @@ cdef class Vehicle(object):
     
     cdef public:
         np.int_t[:, :] road
-        int prev_vel
+        int prev_vel, id
     
     cdef float rng
     cdef Road Road
@@ -33,6 +33,7 @@ cdef class Vehicle(object):
         self.vmax = Road.vmax
         self.road = Road.road
         self.Road = Road
+        self.id = Road.get_id()
 
     cdef accelerate(self):
         self.prev_vel = self.vel
@@ -67,11 +68,11 @@ cdef class Vehicle(object):
         return headwaycount
 
 
-    cpdef place(self):
-        self.road[self.lane, self.pos] += self.marker
+    cdef place(self):
+        self.road[self.lane, self.pos] = self.id
 
     cdef remove(self):
-        self.road[self.lane, self.pos] -= self.marker
+        self.road[self.lane, self.pos] = 0
 
     cdef bint lanechange(self):
         cdef int where, max_headway, i, headway, current_headway
@@ -80,25 +81,47 @@ cdef class Vehicle(object):
         s = np.zeros(self.Road.num_lanes, dtype=np.int)
         current_headway = self.headway(self.lane)
 
-        for i in range(self.Road.num_lanes):
-            headway = self.headway(i)
-            s[i] = headway
-            if headway>max_headway:
-                where = i
-                max_headway = headway
+        if self.vel>current_headway:
+            # scan for suitable lanes
+            for i in range(self.Road.num_lanes):
+                headway = self.headway(i)
+                s[i] = headway
+                if headway>max_headway:
+                    where = i
+                    max_headway = headway
+            # self.lookback(where)
 
-        if (where != self.lane) and (max_headway>current_headway):  # desired lane is different
-            if self.lane > where and ((self.road[self.lane-1, self.pos]==0)):  # left
-                self.remove()
-                self.lane -= 1
-                self.place()
-                return True
-            elif self.lane < where and ((self.road[self.lane+1, self.pos])==0):  # right
-                self.remove()
-                self.lane += 1
-                self.place()
-                return True
+            if (where != self.lane) and (max_headway>current_headway):  # desired lane is different
+                if self.lane > where and ((self.road[self.lane-1, self.pos]==0)) and self.lookback(self.lane-1):  # left
+                    self.remove()
+                    self.lane -= 1
+                    self.place()
+                    return True
+                elif self.lane < where and ((self.road[self.lane+1, self.pos])==0) and self.lookback(self.lane+1):  # right
+                    self.remove()
+                    self.lane += 1
+                    self.place()
+                    return True
         return False
+
+    cdef bint lookback(self, int target_lane):
+        cdef int _pos, headwaycount
+        headwaycount = 0
+        _pos = self.pos-1
+        if self.Road.periodic:
+            _pos %= self.Road.roadlength
+        while (self.road[target_lane, _pos]==0) and (headwaycount<(self.vmax)):
+            _pos -= 1
+            if self.Road.periodic:
+                _pos %= self.Road.roadlength
+            headwaycount += 1
+        back_id = self.road[target_lane, _pos]
+        if back_id == 0: # all clear!
+            return True
+        elif headwaycount+self.vel >= self.Road.get_vehicle(back_id).vel-max_decel: # will it crash?
+            return True
+        else: # too risky!
+            return False
 
 
 cdef class Bus(Vehicle):
@@ -121,6 +144,7 @@ cdef class Bus(Vehicle):
         self.pedestrian = Road.pedestrian
         self.num_passengers = 0
         self.wait_counter = Road.bus_wait_time
+        self.id = Road.get_id()
 
     cdef accelerate(self):
         if self.wait_counter==self.Road.bus_wait_time:
@@ -176,6 +200,7 @@ cdef class Road:
         list waiting_times
         list vehicle_array
 
+    cdef int id_counter
 
     def __cinit__(self, int roadlength, int num_lanes, int vmax, float alpha, 
                     float frac_bus, bint periodic, float density, float p_slow,
@@ -193,6 +218,7 @@ cdef class Road:
         self.station_period = station_period
         self.max_passengers = max_passengers
         self.bus_wait_time = bus_wait_time
+        self.id_counter = 0
         if frac_bus <= 1./num_lanes:
             self.frac_bus = frac_bus
         else:
@@ -204,6 +230,10 @@ cdef class Road:
             num_cars = num_vehicles - num_buses
             self.place_vehicle_type(Bus, num_buses)
             self.place_vehicle_type(Vehicle, num_cars)
+
+    cdef int get_id(self):
+        self.id_counter = self.id_counter + 1
+        return self.id_counter
 
     cpdef place_vehicle_type(self, Vehicle, int number):
         cdef int i, pos, lane
@@ -344,3 +374,17 @@ cdef class Road:
                 if veh.num_passengers == self.max_passengers:
                     count += 1
         return count
+
+    cpdef np.int_t[:,:] get_road(self):
+        cdef np.int_t[:,:] road
+        cdef Vehicle veh
+        road = np.zeros((self.num_lanes, self.roadlength), dtype=np.int)
+        for veh in self.vehicle_array:
+            road[veh.lane, veh.pos] = veh.marker
+        return road
+
+    cdef Vehicle get_vehicle(self, int veh_id):
+        cdef Vehicle veh
+        for veh in self.vehicle_array:
+            if veh.id == veh_id:
+                return veh
