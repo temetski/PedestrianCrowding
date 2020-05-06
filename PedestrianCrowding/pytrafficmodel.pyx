@@ -10,7 +10,7 @@ import random as rnd
 
 STUFF="HI"
 cdef int max_decel = 2
-cdef class Vehicle(object):
+cdef class Vehicle:
     cdef readonly:
         int pos,lane, prev_lane, marker, vel, vmax
         float p_lambda, p_slow
@@ -35,19 +35,19 @@ cdef class Vehicle(object):
         self.Road = Road
         self.id = Road.get_id()
 
-    cdef accelerate(self):
+    cdef void accelerate(self):
         self.prev_vel = self.vel
         self.vel = min(self.vel+1, self.vmax)
 
-    cdef decelerate(self):
+    cdef void decelerate(self):
         self.vel = min(self.vel, self.headway(self.lane))
 
-    cdef random_slow(self):
+    cdef void random_slow(self):
         self.rng = np.random.random()
         if (self.rng < self.p_slow):
             self.vel = max(self.vel-1, 0)
 
-    cdef movement(self):
+    cdef void movement(self):
         self.remove()
         self.pos += self.vel
         if self.Road.periodic:
@@ -68,10 +68,10 @@ cdef class Vehicle(object):
         return headwaycount
 
 
-    cdef place(self):
+    cdef void place(self):
         self.road[self.lane, self.pos] = self.id
 
-    cdef remove(self):
+    cdef void remove(self):
         self.road[self.lane, self.pos] = 0
 
     cdef bint lanechange(self):
@@ -146,14 +146,14 @@ cdef class Bus(Vehicle):
         self.wait_counter = Road.bus_wait_time
         self.id = Road.get_id()
 
-    cdef accelerate(self):
+    cdef void accelerate(self):
         if self.wait_counter==self.Road.bus_wait_time:
             self.prev_vel = self.vel
             self.vel = min(self.vel+1, self.vmax)
         else:
             self.wait_counter += 1
 
-    cpdef decelerate(self):
+    cpdef void decelerate(self):
         hw_pass = self.passenger_headway()
         hw = self.headway(self.lane)
 
@@ -181,7 +181,7 @@ cdef class Bus(Vehicle):
             headwaycount += 1
         return headwaycount + 1
 
-    cpdef load(self):
+    cpdef void load(self):
         if self.pedestrian[self.lane, self.pos] != 0:
             self.Road.waiting_times.append(self.pedestrian[self.lane, self.pos])
             self.pedestrian[self.lane, self.pos] = 0
@@ -235,17 +235,18 @@ cdef class Road:
         self.id_counter = self.id_counter + 1
         return self.id_counter
 
-    cpdef place_vehicle_type(self, Vehicle, int number):
+    cdef place_vehicle_type(self, type veh_type, int number):
         cdef int i, pos, lane
+        cdef Vehicle vehicle
         for i in range(number):
             pos=0; lane=self.num_lanes-1
             while not self.place_check(pos, lane):
                 pos = np.random.randint(self.roadlength)
-                if Vehicle != Bus: # type checking
+                if veh_type != Bus: # type checking
                     lane = np.random.randint(self.num_lanes)
                 else:
                     lane = self.num_lanes-1
-            vehicle = Vehicle(Road=self, pos=pos, lane=lane, vel=self.vmax, p_slow=self.p_slow, p_lambda=0 if Vehicle == Bus else 1)
+            vehicle = veh_type(Road=self, pos=pos, lane=lane, vel=self.vmax, p_slow=self.p_slow, p_lambda=0 if veh_type == Bus else 1)
             self.vehicle_array.append(vehicle)
             vehicle.place()
 
