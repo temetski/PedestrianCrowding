@@ -15,7 +15,7 @@ v_max = 5
 densities = np.arange(0.02, 1, 0.02)
 bus_fractions = [0,0.2,0.4,0.5]
 trials = range(50)
-alphas = np.geomspace(1e-4, 1, 49)
+alphas = np.geomspace(1e-4, 1, 5)
 
 def g(tup):
     return simulate(*tup, num_lanes=num_lanes, 
