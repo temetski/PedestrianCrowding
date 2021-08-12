@@ -9,7 +9,7 @@ trans_time = 1000
 def simulate(density, frac_bus, trial, alpha, 
              station_period=1, num_lanes=2, sim_time=3000, 
              trans_time=1000, roadlength=500, v_max=5, p_slow=0.2, bus_wait_time=0):
-    print("Param settings: roadlen: %s \t vmax: %s \t pslow: %s \t num_lanes: %s"%(roadlength, v_max, p_slow, num_lanes))
+    print("Param settings: density: %s \t alpha: %s \t pslow: %s \t num_lanes: %s"%(density, alpha, p_slow, num_lanes))
     periodic = True
     throughputs = []
     throughputs_lane = np.zeros((sim_time, num_lanes))

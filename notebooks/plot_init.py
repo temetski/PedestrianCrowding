@@ -3,9 +3,9 @@
 
 # plt.rcParams['text.usetex'] = True
 
-label_size = 12
-font_size = 10
-legend_size = 8
+label_size = 10
+font_size = 7
+legend_size = 7
 
 def ticks_size():
     """Size of axes' ticks
@@ -28,12 +28,11 @@ def plot_lw():
 params = {'savefig.dpi': 300,
 #               'text.usetex': True,
               'figure.dpi': 300,
-              'figure.figsize': [4, 3],
+              'figure.figsize': [3.5, 3.5/4*3],
               'font.size': font_size,
               'axes.labelsize': label_size,
-              'axes.titlesize': font_size,
+              'axes.titlesize': label_size,
               'axes.linewidth': axis_lw(),
-#               'text.fontsize': font_size,
               'xtick.labelsize': ticks_size(),
               'ytick.labelsize': ticks_size(),
               'font.family': 'serif',

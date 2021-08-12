@@ -29,7 +29,7 @@ with open('../data/dataset_stopped_time.csv', 'w') as f:
     writer = csv.writer(f)
     lines = 0
     ## crossover data
-    densities = np.arange(0.2, 0.81, 0.1)
+    densities = np.arange(0.02, 1, 0.02)
     alphas = np.geomspace(1e-4, 1, 49)
     for result in p.imap_unordered(g, itertools.product(densities, [1], trials, alphas, waiting_times)):
         if lines == 0:
@@ -37,8 +37,8 @@ with open('../data/dataset_stopped_time.csv', 'w') as f:
             lines += 1
         writer.writerow(result.values())
         
-    ## FD data
-    densities = np.arange(0.02, 1, 0.02)
-    bus_fractions = [0,0.2,0.5]
-    for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, [1e-3, 1e-2], waiting_times)):
-        writer.writerow(result.values())
+    # ## FD data
+    # densities = np.arange(0.02, 1, 0.02)
+    # bus_fractions = [0,0.2,0.5]
+    # for result in p.imap_unordered(g, itertools.product(densities, bus_fractions, trials, [1e-3, 1e-2], waiting_times)):
+    #     writer.writerow(result.values())
